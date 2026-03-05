@@ -30,15 +30,17 @@ const sidebarItems: MenuSection[] = [
   },
   {
     title: "Parameter Explanation",
-    items: [],
+    items: [
+      { title: "Heterogeneous Parallelism Configuration", href: "/parameter/explanation" },
+    ],
   },
   {
     title: "Models",
     items: [
       { title: "LLaMA-7B", href: "/models/llama-7b" },
       { title: "Qwen2.5-2.7B", href: "/models/qwen2.5-2.7b" },
-      { title: "DeepSeek-1.7B", href: "/models/deepseek-1.7b" },
-      { title: "Mistral-6.1B", href: "/models/mistral-6.1b" },
+      { title: "DeepSeek-V3", href: "/models/deepseek-v3" },
+      { title: "Mixtral-8x7B", href: "/models/mixtral-8x7b" },
       { title: "Jiutian-13.9B", href: "/models/jiutian-13.9b" },
     ],
   },
@@ -59,14 +61,7 @@ const sidebarItems: MenuSection[] = [
       { title: "Heterogeneous Context Parallelism", href: "/advanced/context-parallelism" },
     ],
   },
-  {
-    title: "API Reference",
-    items: [
-      { title: "Client API", href: "/api/client" },
-      { title: "Server API", href: "/api/server" },
-      { title: "Types", href: "/api/types" },
-    ],
-  },
+
 ];
 
 export function DocsLayout({ children }: DocsLayoutProps) {
