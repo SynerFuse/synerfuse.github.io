@@ -20,6 +20,7 @@ import AdvancedDataParallelism from "./pages/AdvancedDataParallelism";
 import AdvancedTensorParallelism from "./pages/AdvancedTensorParallelism";
 import AdvancedExpertParallelism from "./pages/AdvancedExpertParallelism";
 import AdvancedContextParallelism from "./pages/AdvancedContextParallelism";
+import HardwareSupportedGPUs from "./pages/HardwareSupportedGPUs";
 import { DocsLayout } from "./components/DocsLayout";
 
 // 使用 Hash 路由以兼容 GitHub Pages 静态托管
@@ -65,6 +66,9 @@ function AppRoutes() {
       <Route path="/advanced/tensor-parallelism" component={withLayout(AdvancedTensorParallelism)} />
       <Route path="/advanced/expert-parallelism" component={withLayout(AdvancedExpertParallelism)} />
       <Route path="/advanced/context-parallelism" component={withLayout(AdvancedContextParallelism)} />
+      
+      {/* Hardware Support */}
+      <Route path="/hardware/supported-gpus" component={withLayout(HardwareSupportedGPUs)} />
       
       {/* 通配符路由：匹配所有其他文档路径 */}
       <Route path="/parameter/:sub*" component={withLayout(GenericDoc)} />
