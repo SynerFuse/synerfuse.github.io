@@ -1,194 +1,133 @@
-import { DocsLayout } from "@/components/DocsLayout";
-
 export default function ModelJiutian() {
   return (
-    <DocsLayout>
-      <div className="space-y-8 animate-in fade-in duration-500">
-        <div className="text-sm text-muted-foreground mb-4">
-          Docs <span className="mx-2">/</span> Models <span className="mx-2">/</span> Jiutian-13.9B
-        </div>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-4">
+        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-primary">
+          Jiutian-13.9B Training Guide
+        </h1>
+        <p className="text-xl text-muted-foreground leading-relaxed">
+          Learn how to train the Jiutian-13.9B MoE model using SynerFuse with heterogeneous distributed training.
+        </p>
+      </div>
 
-        <div className="space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
-            Jiutian-13.9B Training Guide
-          </h1>
-          <p className="text-xl text-muted-foreground leading-relaxed">
-            Learn how to train the Jiutian-13.9B model using SynerFuse with distributed mixture of experts training.
+      <div className="space-y-8">
+        <section className="space-y-4">
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+            Model Overview
+          </h2>
+          <p className="text-lg leading-7">
+            Jiutian-13.9B is a 13.9 billion parameter Mixture of Experts model. This guide provides the training script and configuration for distributed training using SynerFuse.
           </p>
-        </div>
+        </section>
 
-        <div className="prose prose-slate dark:prose-invert max-w-none">
-          <hr className="my-8 border-border" />
-
-          <h2>Model Overview</h2>
-          <p>
-            Jiutian-13.9B is a sparse mixture of experts (MoE) model with 8 experts. This guide provides the training script and configuration for distributed training using SynerFuse.
+        <section className="space-y-4">
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+            Training Script
+          </h2>
+          <p className="text-lg leading-7">
+            Below is the complete training script for Jiutian-13.9B:
           </p>
-
-          <h2>Training Script</h2>
-          <p>
-            Below is the complete training script for Jiutian-13.9B with distributed expert parallelism:
-          </p>
-
-          <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm">
-            <code>{`#!/bin/bash
-# Runs Mixtral 8x7B model
+          <pre className="bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono"><code>{`#!/bin/bash
+# Jiutian-13.9B Training Script
 export CUDA_DEVICE_MAX_CONNECTIONS=1
+export NCCL_SOCKET_IFNAME=ibs5
+export NCCL_IB_DISABLE=0
+export OMP_NUM_THREADS=4
 
-GPUS_PER_NODE=8
-MASTER_ADDR=\${MASTER_ADDR:-"localhost"}
-MASTER_PORT=\${MASTER_PORT:-"6000"}
-NNODES=\${SLURM_NNODES:-"1"}
-NODE_RANK=\${RANK:-"0"}
-WORLD_SIZE=\$((GPUS_PER_NODE*NNODES))
-
-TOKENIZER_MODEL=/data2/nfs/llama-dataset/tokenizer.model
-DATA_PATH=/data2/nfs/llama-dataset/RedPajama-Data-1T-Sample/RedPajama-Data-1T-Sample
+CHECKPOINT_PATH=/path/to/checkpoints
+TENSORBOARD_LOGS_PATH=/path/to/tensorboard_logs
+TOKENIZER_PATH=/path/to/tokenizer.model
+DATA_PATH=/path/to/dataset
 
 DISTRIBUTED_ARGS=(
-    --nproc_per_node \${GPUS_PER_NODE}
-    --nnodes \${NNODES}
-    --node_rank \${NODE_RANK}
-    --master_addr \${MASTER_ADDR}
-    --master_port \${MASTER_PORT}
+    --nproc_per_node 8
+    --nnodes 2
+    --node_rank 0
+    --master_addr localhost
+    --master_port 6000
 )
 
 MODEL_ARGS=(
-    --use-mcore-models
-    --disable-bias-linear
-    --seq-length 1024
-    --max-position-embeddings 4096
-    --num-layers 8
+    --num-layers 40
     --hidden-size 5120
-    --ffn-hidden-size 13824
     --num-attention-heads 40
-    --init-method-std 0.01
-    --attention-dropout 0.0
-    --hidden-dropout 0.0
-    --normalization RMSNorm
-    --position-embedding-type rope
-    --swiglu
-    --untie-embeddings-and-output-weights
-    --group-query-attention
-    --num-query-groups 40
-    --no-masked-softmax-fusion
-    --no-position-embedding
-    --rotary-base 1000000
-)
-
-MOE_ARGS=(
-    --expert-model-type Jiutian
-    --num-experts 8
-    --moe-router-topk 2
-    --moe-router-load-balancing-type aux_loss
-    --moe-aux-loss-coeff 1e-2
-    --overlap-param-gather
-    --overlap-grad-reduce
-)
-
-DATA_ARGS=(
-    --tokenizer-type SentencePieceTokenizer
-    --tokenizer-model \${TOKENIZER_MODEL}
-    --data-path \${DATA_PATH}
-    --split 949,50,1
+    --num-experts 16
+    --expert-model-parallel-size 8
+    --seq-length 4096
+    --max-position-embeddings 4096
 )
 
 TRAINING_ARGS=(
     --micro-batch-size 1
-    --global-batch-size 1024
-    --lr 1e-4
-    --train-iters 5
-    --lr-decay-style cosine
-    --min-lr 1.0e-5
-    --weight-decay 0.1
-    --lr-warmup-iters 1
+    --global-batch-size 128
+    --train-iters 500000
+    --weight-decay 0.01
     --clip-grad 1.0
-    --bf16
+    --fp16
+    --lr 1e-4
+    --lr-decay-style cosine
+    --min-lr 1e-5
+    --lr-warmup-fraction 0.01
+    --adam-beta1 0.9
+    --adam-beta2 0.95
 )
 
-MODEL_PARALLEL_ARGS=(
-    --tensor-model-parallel-size 2
-    --pipeline-model-parallel-size 4
-    --expert-model-parallel-size 1
-    --use-distributed-optimizer
-    --sequence-parallel
-)
-
-LOGGING_ARGS=(
-    --log-interval 1
-    --save-interval 1000
-    --eval-interval 1000
-    --eval-iters 10
-    --no-load-optim
-    --no-load-rng
-)
-
-torchrun \${DISTRIBUTED_ARGS[@]} ../../pretrain_gpt.py \\
+torchrun \${DISTRIBUTED_ARGS[@]} pretrain_gpt.py \\
+    --tokenizer-type SentencePieceTokenizer \\
+    --tokenizer-model \${TOKENIZER_PATH} \\
+    --data-path \${DATA_PATH} \\
+    --output-dir \${CHECKPOINT_PATH} \\
+    --log-dir \${TENSORBOARD_LOGS_PATH} \\
     \${MODEL_ARGS[@]} \\
-    \${MOE_ARGS[@]} \\
-    \${DATA_ARGS[@]} \\
     \${TRAINING_ARGS[@]} \\
-    \${MODEL_PARALLEL_ARGS[@]} \\
-    \${LOGGING_ARGS[@]}`}</code>
-          </pre>
+    --save-interval 1000 \\
+    --eval-interval 1000 \\
+    --eval-iters 10`}</code></pre>
+        </section>
 
-          <h2>Key Configuration Parameters</h2>
-          <ul>
-            <li><strong>Model Size</strong>: 13.9 billion parameters</li>
-            <li><strong>Hidden Size</strong>: 5120</li>
-            <li><strong>Number of Layers</strong>: 8</li>
-            <li><strong>Number of Heads</strong>: 40</li>
-            <li><strong>Sequence Length</strong>: 1024</li>
-            <li><strong>Tensor Parallel Size</strong>: 2</li>
-            <li><strong>Pipeline Parallel Size</strong>: 4</li>
-            <li><strong>Expert Parallel Size</strong>: 1</li>
-            <li><strong>Number of Experts</strong>: 8</li>
-            <li><strong>Top-K Experts</strong>: 2</li>
-            <li><strong>Global Batch Size</strong>: 1024</li>
+        <section className="space-y-4">
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+            Key Configuration Parameters
+          </h2>
+          <ul className="list-disc list-inside space-y-2 text-lg leading-7 ml-4">
+            <li><strong>num-layers</strong>: 40 transformer layers</li>
+            <li><strong>hidden-size</strong>: 5120 hidden dimensions</li>
+            <li><strong>num-experts</strong>: 16 expert networks</li>
+            <li><strong>expert-model-parallel-size</strong>: 8 for expert parallelism</li>
+            <li><strong>micro-batch-size</strong>: 1 sample per GPU per step</li>
+            <li><strong>global-batch-size</strong>: 128 samples total per step</li>
           </ul>
+        </section>
 
-          <h2>Mixture of Experts Configuration</h2>
-          <p>
-            Jiutian-13.9B uses a sparse MoE architecture with the following characteristics:
-          </p>
-          <ul>
-            <li><strong>Expert Model Type</strong>: Jiutian-specific MoE implementation</li>
-            <li><strong>Number of Experts</strong>: 8 independent experts</li>
-            <li><strong>Router Top-K</strong>: 2 (each token is routed to top 2 experts)</li>
-            <li><strong>Load Balancing</strong>: Auxiliary loss-based load balancing</li>
-            <li><strong>Tokenizer</strong>: SentencePiece tokenizer (T5-style)</li>
-          </ul>
-
-          <h2>Parallelism Strategy</h2>
-          <p>
-            Jiutian-13.9B uses a combination of parallelism strategies:
-          </p>
-          <ul>
-            <li><strong>Tensor Parallelism</strong>: 2 (splits model across 2 devices)</li>
-            <li><strong>Pipeline Parallelism</strong>: 4 (splits model into 4 stages)</li>
-            <li><strong>Sequence Parallelism</strong>: Enabled for improved performance</li>
-            <li><strong>Distributed Optimizer</strong>: Reduces memory usage</li>
-          </ul>
-
-          <h2>Running the Training</h2>
-          <ol>
-            <li>Update the tokenizer model path and data path</li>
-            <li>Adjust MASTER_ADDR and MASTER_PORT for your cluster</li>
-            <li>Run the script: <code>bash train_JT.sh</code></li>
-            <li>Monitor training progress via console output</li>
+        <section className="space-y-4">
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+            Running the Training
+          </h2>
+          <ol className="list-decimal list-inside space-y-4 text-lg leading-7 ml-4">
+            <li>
+              <span className="font-medium">Set up multi-node environment:</span>
+              <pre className="mt-2 bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono"><code>export CUDA_VISIBLE_DEVICES=0,1,2,3,4,5,6,7</code></pre>
+            </li>
+            <li>
+              <span className="font-medium">Run the training script:</span>
+              <pre className="mt-2 bg-muted p-4 rounded-lg overflow-x-auto text-sm font-mono"><code>bash run_jiutian_13_9b.sh</code></pre>
+            </li>
           </ol>
+        </section>
 
-          <h2>Notes</h2>
-          <ul>
-            <li>This script uses 8 GPUs per node with tensor and pipeline parallelism</li>
-            <li>The model uses RMSNorm normalization and rotary position embeddings</li>
-            <li>Training uses bfloat16 mixed precision for efficiency</li>
-            <li>Supports sequence parallelism for improved performance</li>
-            <li>Uses SentencePiece tokenizer (T5-style) for tokenization</li>
-            <li>Adjust TRAIN_STEPS, LR, and batch sizes based on your requirements</li>
+        <section className="space-y-4">
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">
+            Performance Tips
+          </h2>
+          <ul className="list-disc list-inside space-y-2 text-lg leading-7 ml-4">
+            <li>Use expert parallelism to distribute computation efficiently</li>
+            <li>Monitor expert load balancing for optimal performance</li>
+            <li>Use gradient checkpointing to manage memory usage</li>
+            <li>Enable Flash Attention for faster computation</li>
+            <li>Use high-bandwidth interconnect for multi-node training</li>
           </ul>
-        </div>
+        </section>
       </div>
-    </DocsLayout>
+    </div>
   );
 }

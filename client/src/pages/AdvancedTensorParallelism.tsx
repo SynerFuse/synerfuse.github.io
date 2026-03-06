@@ -1,26 +1,25 @@
-import { DocsLayout } from "@/components/DocsLayout";
+
 
 export default function AdvancedTensorParallelism() {
   return (
-    <DocsLayout>
+    
       <div className="space-y-8 animate-in fade-in duration-500">
         <div className="text-sm text-muted-foreground mb-4">
-          Docs <span className="mx-2">/</span> Advanced Features <span className="mx-2">/</span> Heterogeneous Tensor Parallelism
-        </div>
+        
 
         <div className="space-y-4">
-          <h1 className="text-4xl font-bold tracking-tight text-primary">
+          <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight lg:text-5xl text-primary">
             Heterogeneous Tensor Parallelism
           </h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
             Configure tensor parallelism across heterogeneous GPU clusters with different device types and computational capabilities.
           </p>
-        </div>
+        
 
-        <div className="prose prose-slate dark:prose-invert max-w-none">
+        
           <hr className="my-8 border-border" />
 
-          <h2>Heterogeneous Mesh Configuration</h2>
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Heterogeneous Mesh Configuration</h2>
 
           <h3>Example Configuration</h3>
           <pre className="bg-muted p-4 rounded-lg overflow-x-auto">
@@ -30,20 +29,20 @@ export default function AdvancedTensorParallelism() {
 --hetero-current-device-type H100`}</code>
           </pre>
 
-          <h2>Parameter Explanation</h2>
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Parameter Explanation</h2>
 
           <h3>--enable-hetero</h3>
-          <p>
+          <p className="text-lg leading-7">
             Master switch to enable heterogeneous training mode. Once set, the framework will parse and apply all other heterogeneous-related configurations.
           </p>
 
           <h3>--hetero-process-meshes</h3>
-          <p>
+          <p className="text-lg leading-7">
             Defines the topology and parallelism strategy of the entire heterogeneous cluster.
           </p>
 
           <h4>Format</h4>
-          <p>
+          <p className="text-lg leading-7">
             This parameter accepts a series of tuples: <code>tp cp ep dp pp ...</code>
           </p>
 
@@ -58,7 +57,7 @@ export default function AdvancedTensorParallelism() {
           </ul>
 
           <h4>Example Explanation</h4>
-          <p>
+          <p className="text-lg leading-7">
             In the example above, <code>--hetero-process-meshes 2 1 1 2 1  4 1 1 2 1</code> defines two meshes:
           </p>
           <ul>
@@ -67,17 +66,17 @@ export default function AdvancedTensorParallelism() {
           </ul>
 
           <h4>Constraints</h4>
-          <p>
+          <p className="text-lg leading-7">
             The sum of <code>world_size</code> (i.e., <code>tp*cp*ep*dp*pp</code>) for all meshes must equal the total number of processes launched for the training task.
           </p>
 
           <h3>--hetero-device-types</h3>
-          <p>
+          <p className="text-lg leading-7">
             Defines the names of all device types in the heterogeneous cluster and specifies their priority in logical rank ordering.
           </p>
 
           <h4>Format</h4>
-          <p>
+          <p className="text-lg leading-7">
             <code>TYPE_A TYPE_B ...</code>
           </p>
 
@@ -87,17 +86,17 @@ export default function AdvancedTensorParallelism() {
           </ul>
 
           <h4>Example Explanation</h4>
-          <p>
+          <p className="text-lg leading-7">
             <code>--hetero-device-types H100 BI150S</code> indicates the cluster contains two device types, and logically, H100 devices will have ranks before BI150S devices.
           </p>
 
           <h3>--hetero-current-device-type</h3>
-          <p>
+          <p className="text-lg leading-7">
             Informs the current execution script which device type the node belongs to.
           </p>
 
           <h4>Format</h4>
-          <p>
+          <p className="text-lg leading-7">
             <code>TYPE_NAME</code>
           </p>
 
@@ -106,12 +105,12 @@ export default function AdvancedTensorParallelism() {
           </ul>
 
           <h4>Purpose</h4>
-          <p>
+          <p className="text-lg leading-7">
             In multi-machine launch scripts, you need to set different <code>hetero-current-device-type</code> values for different machine node types, so each node can correctly identify itself. For example, processes launched on H100 machines should set this parameter to <code>H100</code>.
           </p>
 
-          <h2>Tensor Parallelism in Heterogeneous Environment</h2>
-          <p>
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Tensor Parallelism in Heterogeneous Environment</h2>
+          <p className="text-lg leading-7">
             Tensor parallelism splits model tensors across multiple devices. In a heterogeneous environment:
           </p>
 
@@ -122,7 +121,7 @@ export default function AdvancedTensorParallelism() {
             <li>This allows optimizing tensor parallelism based on device capabilities</li>
           </ul>
 
-          <h2>Best Practices</h2>
+          <h2 className="scroll-m-20 border-b pb-2 text-3xl font-semibold tracking-tight">Best Practices</h2>
           <ul>
             <li>Profile your heterogeneous devices to understand their relative performance</li>
             <li>Assign higher tensor-parallel-size to more powerful devices</li>
@@ -130,8 +129,8 @@ export default function AdvancedTensorParallelism() {
             <li>Monitor communication overhead between devices</li>
             <li>Test different configurations to find optimal performance</li>
           </ul>
-        </div>
-      </div>
-    </DocsLayout>
+        
+      
+    
   );
 }
